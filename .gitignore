@@ -1,0 +1,9 @@
+php/app/Runtime
+php/app/Html
+*~
+*.swp
+*.swap
+.svn
+*.bak
+*.patch
+tmp
