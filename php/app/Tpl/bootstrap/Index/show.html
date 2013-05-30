@@ -1,0 +1,25 @@
+<h1 class="center-title">A Web Paste and Edit site!</h1>
+<div class="row">
+  <div class="span12">
+    <if condition="$show eq true">
+    <pre id="editor">{$code['code']}</pre>
+    <script>
+      var editor = ace.edit("editor");
+      editor.setTheme("ace/theme/dawn");
+      editor.getSession().setMode("ace/mode/{$code['mode']}");
+      editor.setReadOnly(true);
+
+      var height = $(window).height() - $($('.center-title')[0]).height() - 160;
+      $('#editor').height(height);
+
+      $(window).resize(function(){
+        height = $(window).height() - $($('.center-title')[0]).height() - 160;
+        $('#editor').height(height);
+        editor.resize();
+      });
+    </script>
+    <else />
+    <p>查询的代码不存在。</p>
+    </if>
+  </div>
+</div>
