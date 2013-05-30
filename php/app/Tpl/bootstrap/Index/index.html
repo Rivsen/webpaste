@@ -1,0 +1,35 @@
+<h1 class="center-title">A Web Paste and Edit site!</h1>
+<div class="row">
+  <div class="span12">
+    <pre id="editor">
+    function foo(items) {
+      var i;
+      for (i = 0; i &lt; items.length; i++) {
+        alert("Ace Rocks " + items[i]);
+      }
+    }
+    </pre>
+    <button class="btn btn-primary btn-submit" id="submit">提交</button>
+  </div>
+</div>
+<script>
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/dawn");
+  editor.getSession().setMode("ace/mode/javascript");
+  editor.getSession().setUseSoftTabs(true);
+  editor.setReadOnly(true);
+
+  var height = $(window).height() - $($('.center-title')[0]).height() - 160;
+  $('#editor').height(height);
+
+  $(window).resize(function(){
+    height = $(window).height() - $($('.center-title')[0]).height() - 160;
+    $('#editor').height(height);
+    editor.resize();
+  });
+
+  $('#submit').click(function(){
+    var code = editor.getSession().getValue();
+    //there will use ajax submit source code
+  });
+</script>
