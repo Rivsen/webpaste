@@ -41,8 +41,14 @@ class App {
         define('IS_DELETE',     REQUEST_METHOD =='DELETE' ? true : false);
         define('IS_AJAX',       ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || !empty($_POST[C('VAR_AJAX_SUBMIT')]) || !empty($_GET[C('VAR_AJAX_SUBMIT')])) ? true : false);
 
-        // URL调度结束标签
-        tag('url_dispatch');         
+        if(defined('GROUP_NAME')) {
+            // 加载分组配置文件
+            if(is_file(CONF_PATH.GROUP_NAME.'/config.php'))
+                C(include CONF_PATH.GROUP_NAME.'/config.php');
+            // 加载分组函数文件
+            if(is_file(COMMON_PATH.GROUP_NAME.'/function.php'))
+                include COMMON_PATH.GROUP_NAME.'/function.php';
+        }
         // 页面压缩输出支持
         if(C('OUTPUT_ENCODE')){
             $zlib = ini_get('zlib.output_compression');
@@ -53,8 +59,8 @@ class App {
             $filters    =   explode(',',C('VAR_FILTERS'));
             foreach($filters as $filter){
                 // 全局参数过滤
-                array_walk_recursive($_POST,$filter);
-                array_walk_recursive($_GET,$filter);
+                $_POST  =   array_map($filter,$_POST);
+                $_GET   =   array_map($filter,$_GET);
             }
         }
 
@@ -67,22 +73,17 @@ class App {
             }elseif(cookie('think_template')){
                 $templateSet = cookie('think_template');
             }
-            if(!in_array($templateSet,explode(',',C('THEME_LIST')))){
-                $templateSet =  C('DEFAULT_THEME');
-            }
-            cookie('think_template',$templateSet,864000);
+            // 主题不存在时仍改回使用默认主题
+            if(!is_dir(TMPL_PATH.$templateSet))
+                $templateSet = C('DEFAULT_THEME');
+            cookie('think_template',$templateSet);
         }
         /* 模板相关目录常量 */
         define('THEME_NAME',   $templateSet);                  // 当前模板主题名称
         $group   =  defined('GROUP_NAME')?GROUP_NAME.'/':'';
-        if(1==C('APP_GROUP_MODE')){ // 独立分组模式
-            define('THEME_PATH',   BASE_LIB_PATH.basename(TMPL_PATH).'/'.(THEME_NAME?THEME_NAME.'/':''));
-            define('APP_TMPL_PATH',__ROOT__.'/'.APP_NAME.(APP_NAME?'/':'').C('APP_GROUP_PATH').'/'.$group.basename(TMPL_PATH).'/'.(THEME_NAME?THEME_NAME.'/':''));
-        }else{ 
-            define('THEME_PATH',   TMPL_PATH.$group.(THEME_NAME?THEME_NAME.'/':''));
-            define('APP_TMPL_PATH',__ROOT__.'/'.APP_NAME.(APP_NAME?'/':'').basename(TMPL_PATH).'/'.$group.(THEME_NAME?THEME_NAME.'/':''));
-        }        
-
+        define('THEME_PATH',   TMPL_PATH.$group.(THEME_NAME?THEME_NAME.'/':''));
+        define('APP_TMPL_PATH',__ROOT__.'/'.APP_NAME.(APP_NAME?'/':'').basename(TMPL_PATH).'/'.$group.(THEME_NAME?THEME_NAME.'/':''));
+        C('TEMPLATE_NAME',THEME_PATH.MODULE_NAME.(defined('GROUP_NAME')?C('TMPL_FILE_DEPR'):'/').ACTION_NAME.C('TMPL_TEMPLATE_SUFFIX'));
         C('CACHE_PATH',CACHE_PATH.$group);
         //动态配置 TMPL_EXCEPTION_FILE,改为绝对地址
         C('TMPL_EXCEPTION_FILE',realpath(C('TMPL_EXCEPTION_FILE')));
@@ -99,7 +100,7 @@ class App {
             $module  =  false;
         }else{
             //创建Action控制器实例
-            $group   =  defined('GROUP_NAME') && C('APP_GROUP_MODE')==0 ? GROUP_NAME.'/' : '';
+            $group   =  defined('GROUP_NAME') ? GROUP_NAME.'/' : '';
             $module  =  A($group.MODULE_NAME);
         }
 
@@ -125,7 +126,7 @@ class App {
         }
         // 获取当前操作名 支持动态路由
         $action = C('ACTION_NAME')?C('ACTION_NAME'):ACTION_NAME;
-        C('TEMPLATE_NAME',THEME_PATH.MODULE_NAME.C('TMPL_FILE_DEPR').$action.C('TMPL_TEMPLATE_SUFFIX'));
+        C('TEMPLATE_NAME',THEME_PATH.MODULE_NAME.(defined('GROUP_NAME')?C('TMPL_FILE_DEPR'):'/').$action.C('TMPL_TEMPLATE_SUFFIX'));
         $action .=  C('ACTION_SUFFIX');
         try{
             if(!preg_match('/^[A-Za-z](\w)*$/',$action)){
@@ -198,10 +199,10 @@ class App {
         // 项目初始化标签
         tag('app_init');
         App::init();
-        // 项目开始标签
-        tag('app_begin');
         // Session初始化
         session(C('SESSION_OPTIONS'));
+        // 项目开始标签
+        tag('app_begin');
         // 记录应用初始化时间
         G('initTime');
         App::exec();

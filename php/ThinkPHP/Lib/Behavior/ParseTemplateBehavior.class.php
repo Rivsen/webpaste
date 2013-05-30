@@ -50,8 +50,7 @@ class ParseTemplateBehavior extends Behavior {
         $_content           =   empty($_data['content'])?$_data['file']:$_data['content'];
         $_data['prefix']    =   !empty($_data['prefix'])?$_data['prefix']:C('TMPL_CACHE_PREFIX');
         if('think'==$engine){ // 采用Think模板引擎
-            if((!empty($_data['content']) && $this->checkContentCache($_data['content'],$_data['prefix'])) 
-                ||  $this->checkCache($_data['file'],$_data['prefix'])) { // 缓存有效
+            if(empty($_data['content']) && $this->checkCache($_data['file'],$_data['prefix'])) { // 缓存有效
                 // 分解变量并载入模板缓存
                 extract($_data['var'], EXTR_OVERWRITE);
                 //载入模版缓存文件
@@ -64,7 +63,13 @@ class ParseTemplateBehavior extends Behavior {
         }else{
             // 调用第三方模板引擎解析和输出
             $class   = 'Template'.ucwords($engine);
-            if(class_exists($class)) {
+            if(is_file(CORE_PATH.'Driver/Template/'.$class.'.class.php')) {
+                // 内置驱动
+                $path = CORE_PATH;
+            }else{ // 扩展驱动
+                $path = EXTEND_PATH;
+            }
+            if(require_cache($path.'Driver/Template/'.$class.'.class.php')) {
                 $tpl   =  new $class;
                 $tpl->fetch($_content,$_data['var']);
             }else {  // 类没有定义
@@ -103,19 +108,4 @@ class ParseTemplateBehavior extends Behavior {
         // 缓存有效
         return true;
     }
-
-    /**
-     * 检查缓存内容是否有效
-     * 如果无效则需要重新编译
-     * @access public
-     * @param string $tmplContent  模板内容
-     * @return boolen
-     */
-    protected function checkContentCache($tmplContent,$prefix='') {
-        if(is_file(C('CACHE_PATH').$prefix.md5($tmplContent).C('TMPL_CACHFILE_SUFFIX'))){
-            return true;
-        }else{
-            return false;
-        }
-    }    
 }

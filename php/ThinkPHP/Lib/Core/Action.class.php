@@ -107,12 +107,11 @@ abstract class Action {
      * @param string $content 输出内容
      * @param string $charset 模板输出字符集
      * @param string $contentType 输出类型
-     * @param string $prefix 模板缓存前缀
      * @return mixed
      */
-    protected function show($content,$charset='',$contentType='',$prefix='') {
+    protected function show($content,$charset='',$contentType='') {
         $this->initView();       
-        $this->view->display('',$charset,$contentType,$content,$prefix);
+        $this->view->display('',$charset,$contentType,$content);
     }
 
     /**
@@ -121,13 +120,11 @@ abstract class Action {
      * @access protected
      * @param string $templateFile 指定要调用的模板文件
      * 默认为空 由系统自动定位模板文件
-     * @param string $content 模板输出内容
-     * @param string $prefix 模板缓存前缀* 
      * @return string
      */
-    protected function fetch($templateFile='',$content='',$prefix='') {
+    protected function fetch($templateFile='') {
         $this->initView();
-        return $this->view->fetch($templateFile,$content,$prefix);
+        return $this->view->fetch($templateFile);
     }
 
     /**
@@ -197,16 +194,6 @@ abstract class Action {
 
     public function __get($name) {
         return $this->get($name);
-    }
-
-    /**
-     * 检测模板变量的值
-     * @access public
-     * @param string $name 名称
-     * @return boolean
-     */
-    public function __isset($name) {
-        return isset($this->tVar[$name]);
     }
 
     /**
@@ -292,7 +279,7 @@ abstract class Action {
      * @access protected
      * @param string $message 错误信息
      * @param string $jumpUrl 页面跳转地址
-     * @param mixed $ajax 是否为Ajax方式 当数字时指定跳转时间
+     * @param Boolean|array $ajax 是否为Ajax方式
      * @return void
      */
     protected function error($message,$jumpUrl='',$ajax=false) {
@@ -304,7 +291,7 @@ abstract class Action {
      * @access protected
      * @param string $message 提示信息
      * @param string $jumpUrl 页面跳转地址
-     * @param mixed $ajax 是否为Ajax方式 当数字时指定跳转时间
+     * @param Boolean|array $ajax 是否为Ajax方式
      * @return void
      */
     protected function success($message,$jumpUrl='',$ajax=false) {
@@ -330,27 +317,20 @@ abstract class Action {
             $type           =   $args?array_shift($args):'';
         }
         if(empty($type)) $type  =   C('DEFAULT_AJAX_RETURN');
-        switch (strtoupper($type)){
-            case 'JSON' :
-                // 返回JSON数据格式到客户端 包含状态信息
-                header('Content-Type:application/json; charset=utf-8');
-                exit(json_encode($data));
-            case 'XML'  :
-                // 返回xml格式数据
-                header('Content-Type:text/xml; charset=utf-8');
-                exit(xml_encode($data));
-            case 'JSONP':
-                // 返回JSON数据格式到客户端 包含状态信息
-                header('Content-Type:application/json; charset=utf-8');
-                $handler  =   isset($_GET[C('VAR_JSONP_HANDLER')]) ? $_GET[C('VAR_JSONP_HANDLER')] : C('DEFAULT_JSONP_HANDLER');
-                exit($handler.'('.json_encode($data).');');  
-            case 'EVAL' :
-                // 返回可执行的js脚本
-                header('Content-Type:text/html; charset=utf-8');
-                exit($data);            
-            default     :
-                // 用于扩展其他返回格式数据
-                tag('ajax_return',$data);
+        if(strtoupper($type)=='JSON') {
+            // 返回JSON数据格式到客户端 包含状态信息
+            header('Content-Type:text/html; charset=utf-8');
+            exit(json_encode($data));
+        }elseif(strtoupper($type)=='XML'){
+            // 返回xml格式数据
+            header('Content-Type:text/xml; charset=utf-8');
+            exit(xml_encode($data));
+        }elseif(strtoupper($type)=='EVAL'){
+            // 返回可执行的js脚本
+            header('Content-Type:text/html; charset=utf-8');
+            exit($data);
+        }else{
+            // TODO 增加其它格式
         }
     }
 
@@ -375,19 +355,18 @@ abstract class Action {
      * @param string $message 提示信息
      * @param Boolean $status 状态
      * @param string $jumpUrl 页面跳转地址
-     * @param mixed $ajax 是否为Ajax方式 当数字时指定跳转时间
+     * @param Boolean|array $ajax 是否为Ajax方式
      * @access private
      * @return void
      */
     private function dispatchJump($message,$status=1,$jumpUrl='',$ajax=false) {
-        if(true === $ajax || IS_AJAX) {// AJAX提交
-            $data           =   is_array($ajax)?$ajax:array();
+        if($ajax || $this->isAjax()) {// AJAX提交
+            $data           =   is_array($ajax)?$ajax:$this->get();
             $data['info']   =   $message;
             $data['status'] =   $status;
             $data['url']    =   $jumpUrl;
             $this->ajaxReturn($data);
         }
-        if(is_int($ajax)) $this->assign('waitSecond',$ajax);
         if(!empty($jumpUrl)) $this->assign('jumpUrl',$jumpUrl);
         // 提示标题
         $this->assign('msgTitle',$status? L('_OPERATION_SUCCESS_') : L('_OPERATION_FAIL_'));

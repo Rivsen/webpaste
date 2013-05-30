@@ -50,7 +50,13 @@ class Cache {
         if(empty($type))  $type = C('DATA_CACHE_TYPE');
         $type  = strtolower(trim($type));
         $class = 'Cache'.ucwords($type);
-        if(class_exists($class))
+        if(is_file(CORE_PATH.'Driver/Cache/'.$class.'.class.php')) {
+            // 内置驱动
+            $path = CORE_PATH;
+        }else{ // 扩展驱动
+            $path = EXTEND_PATH;
+        }
+        if(require_cache($path.'Driver/Cache/'.$class.'.class.php'))
             $cache = new $class($options);
         else
             throw_exception(L('_CACHE_TYPE_INVALID_').':'.$type);

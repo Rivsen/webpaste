@@ -69,14 +69,14 @@ function G($start,$end='',$dec=4) {
 function N($key, $step=0,$save=false) {
     static $_num    = array();
     if (!isset($_num[$key])) {
-        $_num[$key] = (false !== $save)? S('N_'.$key) :  0;
+        $_num[$key] = (false !== $save)? cache('N_'.$key) :  0;
     }
     if (empty($step))
         return $_num[$key];
     else
         $_num[$key] = $_num[$key] + (int) $step;
     if(false !== $save){ // 保存结果
-        S('N_'.$key,$_num[$key],$save);
+        cache('N_'.$key,$_num[$key],$save);
     }
 }
 
@@ -98,7 +98,7 @@ function parse_name($name, $type=0) {
 /**
  * 优化的require_once
  * @param string $filename 文件地址
- * @return boolean
+ * @return boolen
  */
 function require_cache($filename) {
     static $_importFiles = array();
@@ -114,22 +114,9 @@ function require_cache($filename) {
 }
 
 /**
- * 批量导入文件 成功则返回
- * @param array $array 文件数组
- * @param boolean $return 加载成功后是否返回
- * @return boolean
- */
-function require_array($array,$return=false){
-    foreach ($array as $file){
-        if (require_cache($file) && $return) return true;
-    }
-    if($return) return false;
-}
-
-/**
  * 区分大小写的文件存在判断
  * @param string $filename 文件地址
- * @return boolean
+ * @return boolen
  */
 function file_exists_case($filename) {
     if (is_file($filename)) {
@@ -147,7 +134,7 @@ function file_exists_case($filename) {
  * @param string $class 类库命名空间字符串
  * @param string $baseUrl 起始路径
  * @param string $ext 导入的文件扩展名
- * @return boolean
+ * @return boolen
  */
 function import($class, $baseUrl = '', $ext='.class.php') {
     static $_file = array();
@@ -162,11 +149,10 @@ function import($class, $baseUrl = '', $ext='.class.php') {
         $_file[$class . $baseUrl] = true;
     $class_strut     = explode('/', $class);
     if (empty($baseUrl)) {
-        $libPath    =   defined('BASE_LIB_PATH')?BASE_LIB_PATH:LIB_PATH;
         if ('@' == $class_strut[0] || APP_NAME == $class_strut[0]) {
             //加载当前项目应用类库
-            $baseUrl = dirname($libPath);
-            $class   = substr_replace($class, basename($libPath).'/', 0, strlen($class_strut[0]) + 1);
+            $baseUrl = dirname(LIB_PATH);
+            $class   = substr_replace($class, basename(LIB_PATH).'/', 0, strlen($class_strut[0]) + 1);
         }elseif ('think' == strtolower($class_strut[0])){ // think 官方基类库
             $baseUrl = CORE_PATH;
             $class   = substr($class,6);
@@ -175,7 +161,7 @@ function import($class, $baseUrl = '', $ext='.class.php') {
             $baseUrl = LIBRARY_PATH;
         }else { // 加载其他项目应用类库
             $class   = substr_replace($class, '', 0, strlen($class_strut[0]) + 1);
-            $baseUrl = APP_PATH . '../' . $class_strut[0] . '/'.basename($libPath).'/';
+            $baseUrl = APP_PATH . '../' . $class_strut[0] . '/'.basename(LIB_PATH).'/';
         }
     }
     if (substr($baseUrl, -1) != '/')
@@ -299,10 +285,9 @@ function M($name='', $tablePrefix='',$connection='') {
  * A函数用于实例化Action 格式：[项目://][分组/]模块
  * @param string $name Action资源地址
  * @param string $layer 控制层名称
- * @param boolean $common 是否公共目录
  * @return Action|false
  */
-function A($name,$layer='',$common=false) {
+function A($name,$layer='') {
     static $_action = array();
     $layer      =   $layer?$layer:C('DEFAULT_C_LAYER');
     if(strpos($name,'://')) {// 指定项目
@@ -311,11 +296,7 @@ function A($name,$layer='',$common=false) {
         $name   =  '@/'.$layer.'/'.$name;
     }
     if(isset($_action[$name]))  return $_action[$name];
-    if($common){ // 独立分组情况下 加载公共目录类库
-        import(str_replace('@/','',$name).$layer,LIB_PATH);
-    }else{
-        import($name.$layer); 
-    }    
+    import($name.$layer);
     $class      =   basename($name.$layer);
     if(class_exists($class,false)) {
         $action             = new $class();
@@ -384,7 +365,7 @@ function C($name=null, $value=null) {
     static $_config = array();
     // 无参数时获取所有
     if (empty($name)) {
-        if(!empty($value) && $array = S('c_'.$value)) {
+        if(!empty($value) && $array = cache('c_'.$value)) {
             $_config = array_merge($_config, array_change_key_case($array));
         }
         return $_config;
@@ -410,7 +391,7 @@ function C($name=null, $value=null) {
     if (is_array($name)){
         $_config = array_merge($_config, array_change_key_case($name));
         if(!empty($value)) {// 保存配置值
-            S('c_'.$value,$_config);
+            cache('c_'.$value,$_config);
         }
         return;
     }
@@ -485,13 +466,10 @@ function add_tag_behavior($tag,$behavior,$path='') {
  */
 function B($name, &$params=NULL) {
     $class      = $name.'Behavior';
-    if(APP_DEBUG) {
-        G('behaviorStart');
-    }
+    G('behaviorStart');
     $behavior   = new $class();
     $behavior->run($params);
     if(APP_DEBUG) { // 记录行为的执行日志
-        G('behaviorEnd');
         trace('Run '.$name.' Behavior [ RunTime:'.G('behaviorStart','behaviorEnd',6).'s ]','','INFO');
     }
 }
@@ -583,7 +561,6 @@ function array_define($array,$check=true) {
  * @param string $value 变量
  * @param string $label 标签
  * @param string $level 日志级别 
- * @param boolean $record 是否记录日志
  * @return void
  */
 function trace($value='[think]',$label='',$level='DEBUG',$record=false) {
@@ -592,10 +569,9 @@ function trace($value='[think]',$label='',$level='DEBUG',$record=false) {
         return $_trace;
     }else{
         $info   =   ($label?$label.':':'').print_r($value,true);
-        if('ERR' == $level && C('TRACE_EXCEPTION')) {// 抛出异常
+        if(APP_DEBUG && 'ERR' == $level) {// 调试模式ERR抛出异常
             throw_exception($info);
         }
-        $level  =   strtoupper($level);
         if(!isset($_trace[$level])) {
                 $_trace[$level] =   array();
             }

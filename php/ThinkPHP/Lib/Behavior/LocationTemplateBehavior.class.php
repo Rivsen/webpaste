@@ -45,7 +45,8 @@ class LocationTemplateBehavior extends Behavior {
             }else{
                 $path = THEME_PATH;
             }
-            $templateFile  =  $path.$module.C('TMPL_FILE_DEPR').$action.C('TMPL_TEMPLATE_SUFFIX');
+            $depr = defined('GROUP_NAME')?C('TMPL_FILE_DEPR'):'/';
+            $templateFile  =  $path.$module.$depr.$action.C('TMPL_TEMPLATE_SUFFIX');
         }
         if(!file_exists_case($templateFile))
             throw_exception(L('_TEMPLATE_NOT_EXIST_').'['.$templateFile.']');

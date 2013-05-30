@@ -19,14 +19,14 @@ defined('THINK_PATH') or exit();
 if(version_compare(PHP_VERSION,'5.2.0','<'))  die('require PHP > 5.2.0 !');
 
 //  版本信息
-define('THINK_VERSION', '3.1.2');
+define('THINK_VERSION', '3.1');
 
 //   系统信息
-if(version_compare(PHP_VERSION,'5.4.0','<')) {
-    ini_set('magic_quotes_runtime',0);
+if(version_compare(PHP_VERSION,'5.3.0','<')) {
+    set_magic_quotes_runtime(0);
     define('MAGIC_QUOTES_GPC',get_magic_quotes_gpc()?True:False);
 }else{
-    define('MAGIC_QUOTES_GPC',false);
+    define('MAGIC_QUOTES_GPC',True);
 }
 define('IS_CGI',substr(PHP_SAPI, 0,3)=='cgi' ? 1 : 0 );
 define('IS_WIN',strstr(PHP_OS, 'WIN') ? 1 : 0 );
@@ -152,8 +152,9 @@ function build_runtime_cache($append='') {
         $content .= compile($file);
     }
     // 系统行为扩展文件统一编译
-    $content .= build_tags_cache();
-    
+    if(C('APP_TAGS_ON')) {
+        $content .= build_tags_cache();
+    }
     //$alias      = include THINK_PATH.'Conf/alias.php';
     //$content   .= 'alias_import('.var_export($alias,true).');';
     // 编译框架默认语言包和配置参数

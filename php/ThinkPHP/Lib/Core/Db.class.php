@@ -78,8 +78,14 @@ class Db {
         // 数据库类型
         $this->dbType = ucwords(strtolower($db_config['dbms']));
         $class = 'Db'. $this->dbType;
+        if(is_file(CORE_PATH.'Driver/Db/'.$class.'.class.php')) {
+            // 内置驱动
+            $path = CORE_PATH;
+        }else{ // 扩展驱动
+            $path = EXTEND_PATH;
+        }
         // 检查驱动类
-        if(class_exists($class)) {
+        if(require_cache($path.'Driver/Db/'.$class.'.class.php')) {
             $db = new $class($db_config);
             // 获取当前的数据库类型
             if( 'pdo' != strtolower($db_config['dbms']) )
@@ -378,11 +384,10 @@ class Db {
         if(is_string($where)) {
             // 直接使用字符串条件
             $whereStr = $where;
-        }else{ // 使用数组表达式
-            $operate  = isset($where['_logic'])?strtoupper($where['_logic']):'';
-            if(in_array($operate,array('AND','OR','XOR'))){
+        }else{ // 使用数组或者对象条件表达式
+            if(isset($where['_logic'])) {
                 // 定义逻辑运算规则 例如 OR XOR AND NOT
-                $operate    =   ' '.$operate.' ';
+                $operate    =   ' '.strtoupper($where['_logic']).' ';
                 unset($where['_logic']);
             }else{
                 // 默认进行 AND 运算
@@ -438,14 +443,12 @@ class Db {
                 }elseif(preg_match('/^(NOTLIKE|LIKE)$/i',$val[0])){// 模糊查找
                     if(is_array($val[1])) {
                         $likeLogic  =   isset($val[2])?strtoupper($val[2]):'OR';
-                        if(in_array($likeLogic,array('AND','OR','XOR'))){
-                            $likeStr    =   $this->comparison[strtolower($val[0])];
-                            $like       =   array();
-                            foreach ($val[1] as $item){
-                                $like[] = $key.' '.$likeStr.' '.$this->parseValue($item);
-                            }
-                            $whereStr .= '('.implode(' '.$likeLogic.' ',$like).')';                          
+                        $likeStr    =   $this->comparison[strtolower($val[0])];
+                        $like       =   array();
+                        foreach ($val[1] as $item){
+                            $like[] = $key.' '.$likeStr.' '.$this->parseValue($item);
                         }
+                        $whereStr .= '('.implode(' '.$likeLogic.' ',$like).')';
                     }else{
                         $whereStr .= $key.' '.$this->comparison[strtolower($val[0])].' '.$this->parseValue($val[1]);
                     }
@@ -469,8 +472,8 @@ class Db {
                 }
             }else {
                 $count = count($val);
-                $rule  = isset($val[$count-1])?strtoupper($val[$count-1]):'';
-                if(in_array($rule,array('AND','OR','XOR'))) {
+                if(in_array(strtoupper(trim($val[$count-1])),array('AND','OR','XOR'))) {
+                    $rule   = strtoupper(trim($val[$count-1]));
                     $count  = $count -1;
                 }else{
                     $rule   = 'AND';
@@ -728,14 +731,14 @@ class Db {
         $cache  =  isset($options['cache'])?$options['cache']:false;
         if($cache) { // 查询缓存检测
             $key    =  is_string($cache['key'])?$cache['key']:md5($sql);
-            $value  =  S($key,'',$cache);
+            $value  =  S($key,'','',$cache['type']);
             if(false !== $value) {
                 return $value;
             }
         }
         $result   = $this->query($sql);
         if($cache && false !== $result ) { // 查询缓存写入
-            S($key,$result,$cache);
+            S($key,$result,$cache['expire'],$cache['type']);
         }
         return $result;
     }
@@ -769,7 +772,7 @@ class Db {
         $sql  =   $this->parseSql($this->selectSql,$options);
         $sql .= $this->parseLock(isset($options['lock'])?$options['lock']:false);
         if(isset($key)) { // 写入SQL创建缓存
-            S($key,$sql,array('expire'=>0,'length'=>C('DB_SQL_BUILD_LENGTH'),'queue'=>C('DB_SQL_BUILD_QUEUE')));
+            S($key,$sql,0,'',array('length'=>C('DB_SQL_BUILD_LENGTH'),'queue'=>C('DB_SQL_BUILD_QUEUE')));
         }
         return $sql;
     }
