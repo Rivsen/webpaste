@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A Web Paste</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Rivsen">
+    <link href="__PUBLIC__/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__PUBLIC__/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+      /* Sticky footer styles
+      -------------------------------------------------- */
+      html,
+      body {
+        height: 100%;
+        /* The html and body elements cannot have any padding or margin. */
+      }
+
+      /* Wrapper for page content to push down footer */
+      #wrap {
+        min-height: 100%;
+        height: auto !important;
+        height: 100%;
+        /* Negative indent footer by it's height */
+        margin: 0 auto -40px;
+      }
+
+      /* Set the fixed height of the footer here */
+      #push,
+      #footer {
+        height: 40px;
+      }
+      #footer {
+      }
+
+      /* Lastly, apply responsive CSS fixes as necessary */
+      @media (max-width: 767px) {
+        #footer {
+          margin-left: -20px;
+          margin-right: -20px;
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+      }
+    </style>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="__PUBLIC__/js/html5shiv.js"></script>
+    <![endif]-->
+    <script src="__PUBLIC__/js/jquery.min.js" language="javascript" type="text/javascript"></script>
+    <script src="__PUBLIC__/js/bootstrap.min.js" language="javascript" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="wrap">
+      <div class="container">
+        {__CONTENT__}
+      </div>
+      <div id="push"></div>
+    </div>
+    <hr />
+    <div id="footer">
+      <div class="container">
+        <p>Powered by <a href="http://www.thinkphp.cn" target="_blank">Thinkphp</a> and <a href="http://twitter.github.io/bootstrap" target="_blank">Twitter Bootstrap</a>. Writen by <a href="https://rivsen.rs-work.me" target="_blank">Rivsen Tan</a>.</p>
+      </div>
+    </div>
+  </body>
+</html>
