@@ -2,115 +2,30 @@
 <div class="row">
   <div class="span2 sidebar">
     <select id="mode">
-      <option value="text">Text</option>
-      <option value="abap">abap</option>
-      <option value="dart">dart</option>
-      <option value="html">html</option>
-      <option value="liquid">liquid</option>
-      <option value="ocaml">ocaml</option>
-      <option value="rust">rust</option>
-      <option value="textile">textile</option>
-      <option value="actionscript">actionscript</option>
-      <option value="diff">diff</option>
-      <option value="html_ruby">html_ruby</option>
-      <option value="lisp">lisp</option>
-      <option value="pascal">pascal</option>
-      <option value="sass">sass</option>
-      <option value="text">text</option>
-      <option value="asciidoc">asciidoc</option>
-      <option value="django">django</option>
-      <option value="ini">ini</option>
-      <option value="livescript">livescript</option>
-      <option value="perl">perl</option>
-      <option value="scad">scad</option>
-      <option value="tmsnippet">tmsnippet</option>
-      <option value="autohotkey">autohotkey</option>
-      <option value="dot">dot</option>
-      <option value="jade">jade</option>
-      <option value="logiql">logiql</option>
-      <option value="pgsql">pgsql</option>
-      <option value="scala">scala</option>
-      <option value="toml">toml</option>
-      <option value="batchfile">batchfile</option>
-      <option value="erlang">erlang</option>
-      <option value="java">java</option>
-      <option value="lsl">lsl</option>
-      <option value="php">php</option>
-      <option value="scheme">scheme</option>
-      <option value="typescript">ypescript</option>
-      <option value="c9search">c9search</option>
-      <option value="forth">forth</option>
-      <option value="javascript">javascript</option>
-      <option value="lua">lua</option>
-      <option value="powershell">powershell</option>
-      <option value="scss">scss</option>
-      <option value="vbscript">vbscript</option>
-      <option value="c_cpp">c_cpp</option>
-      <option value="ftl">ftl</option>
-      <option value="jsoniq">jsoniq</option>
-      <option value="luapage">luapage</option>
-      <option value="prolog">prolog</option>
-      <option value="sh">sh</option>
-      <option value="velocity">velocity</option>
-      <option value="clojure">clojure</option>
-      <option value="glsl">glsl</option>
-      <option value="json">json</option>
-      <option value="lucene">lucene</option>
-      <option value="properties">properties</option>
-      <option value="snippets">snippets</option>
-      <option value="xml">xml</option>
-      <option value="coffee">coffee</option>
-      <option value="golang">golang</option>
-      <option value="jsp">jsp</option>
-      <option value="makefile">makefile</option>
-      <option value="python">python</option>
-      <option value="sql">sql</option>
-      <option value="xquery">xquery</option>
-      <option value="coldfusion">coldfusion</option>
-      <option value="groovy">groovy</option>
-      <option value="jsx">jsx</option>
-      <option value="markdown">markdown</option>
-      <option value="rdoc">rdoc</option>
-      <option value="stylus">stylus</option>
-      <option value="yaml">yaml</option>
-      <option value="csharp">csharp</option>
-      <option value="haml">haml</option>
-      <option value="julia">julia</option>
-      <option value="mushcode_high_rules">mushcode_high_rules</option>
-      <option value="rhtml">rhtml</option>
-      <option value="svg">svg</option>
-      <option value="css">css</option>
-      <option value="haskell">haskell</option>
-      <option value="latex">latex</option>
-      <option value="mushcode">mushcode</option>
-      <option value="r">r</option>
-      <option value="tcl">tcl</option>
-      <option value="curly">curly</option>
-      <option value="haxe">haxe</option>
-      <option value="less">less</option>
-      <option value="objectivec">objectivec</option>
-      <option value="ruby">ruby</option>
-      <option value="tex">tex</option>
+     <foreach name="mode" item="vo">
+      <if condition="$vo eq $code['mode']">
+      <option value="{$vo}" selected>{$vo}</option>
+      <else />
+      <option value="{$vo}">{$vo}</option>
+    </if>
+      </foreach>
     </select>
     <button class="span1 btn btn-primary btn-submit" id="submit">提交</button>
     <div class="alert alert-success"></div>
     <div class="alert alert-error"></div>
   </div>
   <div class="span10">
-    <pre id="editor">
-    function foo(items) {
-      var i;
-      for (i = 0; i &lt; items.length; i++) {
-        alert("Ace Rocks " + items[i]);
-      }
-    }
-    </pre>
+    <pre id="editor">{$code['code']}</pre>
   </div>
 </div>
 <script>
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/dawn");
+  <if condition="$show eq true">
+  editor.getSession().setMode("ace/mode/{$code['mode']}");
+  <else />
   editor.getSession().setMode();
+  </if>
   editor.getSession().setUseSoftTabs(true);
   //editor.setReadOnly(true);
 
@@ -126,9 +41,10 @@
   $('#submit').click(function(){
     var code = editor.getSession().getValue();
     var mode = $('#mode').val();
+    var id = '{$id}';
     var post = $.post(
       '{:U('Index/submit')}?'+Math.random(),
-      {mode: mode, code: code},
+      {mode: mode, code: code<notempty name="id">,id:id</notempty>},
       function(data){
         console.log(data);
         if( data.status > 0 ) {
