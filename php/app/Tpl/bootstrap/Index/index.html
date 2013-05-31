@@ -2,13 +2,13 @@
 <div class="row">
   <div class="span2 sidebar">
     <select id="mode">
-     <foreach name="mode" item="vo">
+    <foreach name="mode" item="vo">
       <if condition="$vo eq $code['mode']">
       <option value="{$vo}" selected>{$vo}</option>
       <else />
       <option value="{$vo}">{$vo}</option>
-    </if>
-      </foreach>
+      </if>
+    </foreach>
     </select>
     <button class="span1 btn btn-primary btn-submit" id="submit">提交</button>
     <div class="alert alert-success"></div>
@@ -38,18 +38,24 @@
     editor.resize();
   });
 
+  var id = '{$id}';
+
   $('#submit').click(function(){
     var code = editor.getSession().getValue();
     var mode = $('#mode').val();
-    var id = '{$id}';
+    var params = {mode: mode, code: code};
+    if( id != '' ) {
+      params.id = id;
+    }
     var post = $.post(
       '{:U('Index/submit')}?'+Math.random(),
-      {mode: mode, code: code<notempty name="id">,id:id</notempty>},
+      params,
       function(data){
         console.log(data);
         if( data.status > 0 ) {
           $('.sidebar .alert-success').html(data.info);
           $('.sidebar .alert-success').show();
+          id = data.data;
         } else {
           $('.sidebar .alert-error').html(data.info);
           $('.sidebar .alert-error').show();
