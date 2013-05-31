@@ -39,19 +39,23 @@ class EmptyAction extends Action{
     }
     //ajax提交地址  --  增
     // 31/5 10:50 Tears - 修改 - 修改URL 生成规则
+    // 31/5 16:10 Tears - 添加代码非空判断
     public function submit(){
         if( $this->isPost() ) {
             $id =  $this->_post("id");// post id
             $mode = $this->_post("mode");
             $code = $this->_post("code");
-
+            if (empty($code)) {
+               $this->ajaxReturn(0, "保存失败！提交的代码不能为空！", 0);
+            }
             if( in_array($mode, $this->mode) ) {
                 $datetime = date( 'Y-m-d H:i:s' );
                 $model = M("paste");
                 $data = array('id'=>$id , 'mode'=>$mode, 'code'=>$code, 'publish'=>$datetime);
                 $res = $model->save($data);
                 $result = empty($id) ? $res : $id;
-                $this->ajaxReturn($result, "保存完成！<a href=\"".U($result.'/show')."\">点击查看</a>", $result);
+                $this->ajaxReturn($result, "保存完成！<a href=\"".U($result.'/show')."\">点击查看</a><br /> 查看地址<br /> 
+                    <p>".$_SERVER["SERVER_NAME"].U($result.'/show'), $result);
                 die();
             }
             $this->ajaxReturn(0, "保存失败！提交的代码类型不正确！", 0);
