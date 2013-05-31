@@ -24,7 +24,7 @@
   <if condition="$show eq true">
   editor.getSession().setMode("ace/mode/{$code['mode']}");
   <else />
-  editor.getSession().setMode();
+  editor.getSession().setMode("ace/mode/php");
   </if>
   editor.getSession().setUseSoftTabs(true);
   //editor.setReadOnly(true);

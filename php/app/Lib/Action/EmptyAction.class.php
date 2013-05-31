@@ -21,6 +21,7 @@ class EmptyAction extends Action{
         "java",
         "ini",
         "diff",
+        "json",
     );
     //新增 和 修改的表单
     public function index(){
