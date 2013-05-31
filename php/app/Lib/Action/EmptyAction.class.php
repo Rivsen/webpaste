@@ -20,6 +20,7 @@ class EmptyAction extends Action{
         "jsp",
         "java",
         "ini",
+        "diff",
     );
     //新增 和 修改的表单
     public function index(){
