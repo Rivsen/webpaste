@@ -38,7 +38,34 @@
 
 </div>
 
-<script>
+<script type="text/javascript">
+  //auto resize editor to full height
+  $(document).ready(function(){
+
+    var heightUpdateFunction = function() {
+
+      // http://stackoverflow.com/questions/11584061/
+      var newHeight =
+        editor.getSession().getScreenLength()
+        * editor.renderer.lineHeight
+        + editor.renderer.scrollBar.getWidth();
+
+      $('#editor').height(newHeight.toString() + "px");
+
+      // This call is required for the editor to fix all of
+      // its inner structure for adapting to a change in size
+      editor.resize();
+    };
+
+    // Set initial size to match initial content
+    heightUpdateFunction();
+
+    // Whenever a change happens inside the ACE editor, update
+    // the size again
+    editor.getSession().on('change', heightUpdateFunction);
+  }
+  // end auto resize editor
+
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/dawn");
   <if condition="$show eq true">
@@ -48,15 +75,6 @@
   </if>
   editor.getSession().setUseSoftTabs(true);
   editor.setFontSize(16);
-
-  var height = $(window).height() - $($('.center-title')[0]).height() - 160;
-  $('#editor').height(height);
-
-  $(window).resize(function(){
-    height = $(window).height() - $($('.center-title')[0]).height() - 160;
-    $('#editor').height(height);
-    editor.resize();
-  });
 
   var id = '{$id}';
 
