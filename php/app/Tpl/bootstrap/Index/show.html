@@ -3,21 +3,30 @@
   <div class="span12">
     <if condition="$show eq true">
     <pre id="editor">{$code['code']}</pre>
-    <script>
+    <script type="text/javascript">
       var editor = ace.edit("editor");
       editor.setTheme("ace/theme/dawn");
       editor.getSession().setMode("ace/mode/{$code['mode']}");
       editor.setFontSize(16);
       editor.setReadOnly(true);
 
-      var height = $(window).height() - $($('.center-title')[0]).height() - 160;
-      $('#editor').height(height);
+      var heightUpdateFunction = function() {
 
-      $(window).resize(function(){
-        height = $(window).height() - $($('.center-title')[0]).height() - 160;
-        $('#editor').height(height);
+        // http://stackoverflow.com/questions/11584061/
+        var newHeight =
+        editor.getSession().getScreenLength()
+        * editor.renderer.lineHeight
+        + editor.renderer.scrollBar.getWidth();
+
+        $('#editor').height(newHeight.toString() + "px");
+
+        // This call is required for the editor to fix all of
+        // its inner structure for adapting to a change in size
         editor.resize();
-      });
+      };
+
+      // Set initial size to match initial content
+      heightUpdateFunction();
     </script>
     <else />
     <p>查询的代码不存在，评论将显示主页的历史评论。</p>
@@ -44,23 +53,3 @@
 </div>
 
 </div>
-<script type="text/javascript">
-  var heightUpdateFunction = function() {
-
-    // http://stackoverflow.com/questions/11584061/
-    var newHeight =
-      editor.getSession().getScreenLength()
-      * editor.renderer.lineHeight
-      + editor.renderer.scrollBar.getWidth();
-
-    $('#editor').height(newHeight.toString() + "px");
-
-    // This call is required for the editor to fix all of
-    // its inner structure for adapting to a change in size
-    editor.resize();
-  };
-
-// Set initial size to match initial content
-heightUpdateFunction();
-// end auto resize editor
-</script>
