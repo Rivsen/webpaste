@@ -50,6 +50,10 @@
         * editor.renderer.lineHeight
         + editor.renderer.scrollBar.getWidth();
 
+        <if condition="$show neq true">
+          newHeight += 100;
+        </if>
+
       $('#editor').height(newHeight.toString() + "px");
 
       // This call is required for the editor to fix all of
