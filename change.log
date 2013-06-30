@@ -1,0 +1,75 @@
+
+2013年6月29日 23:59:59 Tears
+1.新建CommonAction 用于继承使用 自动验证RBAC 权限
+2.创建登录入口 LoginAction (无需验证RBAC)
+3.新建 NodeModel 参见 附录1
+4.新建 Role_userModel 参见 附录2
+5.新建 AccessModel 参见 附录3
+6.新建 RoleModel 参见 附录4
+
+2013年6月22日 20:42:39  Tears
+1.修改项目配置 设置数据库 帐号和密码为webpaste
+2.加入.htaccess文件	支持伪静态
+3.加入change.log文件 记录更新
+4.定义了表前缀 wps_
+5.创建RBAC 数据库
+6.配置加入了RBAC相关配置
+
+附录
+1.节点插入实例
+
+	$nodeModel=D('Node');
+	$data['name']='test';//模块名字(区分大小写 必须先写入APP_NAME为第一位)
+	$data['title']='test';//标题
+	$data['remark']='test';//备注
+	$data['pid']='0';//APP_NAME写0 MODULE写APP_NAME的id MODULE下的ACTION写MODULE的的ID
+	if($nodeModel->create($data)){
+		if($nodeModel->add()){
+			echo 'success';//操作成功
+		}else{
+			dump($nodeModel->getError());//错误提示?待完善:待定;
+		}
+	}else{
+		dump($nodeModel->getError());//自动验证错误提示
+	}
+
+2.用户&用户组映射插入实例
+
+	$role_userModel=D('Role_user');
+    $data['role_id']=1;
+    $data['user_id']=1;
+    if($role_userModel->create($data)){
+    	echo 'success';
+    }else{
+    	dump($role_userModel->getError());
+    }
+
+3.用户组添加权限插入实例
+	$accessModel=D('Access');
+    $data['role_id']=1;
+    $data['node_id']=1;
+    if($accessModel->create($data)){
+		if($accessModel->add()){
+			echo 'success';
+		}else{
+			dump($accessModel->getError());
+		}
+	}else{
+		dump($accessModel->getError());
+	}
+
+4.用户组添加实例
+   $RoleModel=D('Role');
+   $data['name']=1;
+    if($RoleModel->create($data)){
+		if($RoleModel->add()){
+			echo 'success';
+		}else{
+			dump($RoleModel->getError());
+		}
+	}else{
+		dump($RoleModel->getError());
+	}
+
+5.
+

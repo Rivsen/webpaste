@@ -1,10 +1,10 @@
 <?php
 /**
  * 粘贴代码：增改查
- * @category   ThinkPHP技术交流中心
+ * @category   webpaste
  * @author   Rivsen, 尛柒
  */
-class EmptyAction extends Action{
+class EmptyAction extends CommonAction{
     //代码类型
     //31/5 10:50 Tears - 修改了排序和 删除多余类型
     public $mode = array(
